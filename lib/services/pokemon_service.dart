@@ -4,16 +4,14 @@ import '../models/pokemon.dart';
 
 class PokemonService {
 
-  Future<List<Pokemon>> fetchPokemons() async {
-    final response = await http
-        .get(Uri.parse('https://pokeapi.co/api/v2/pokemon?limit=151'));
+  Future<PokemonDetail> fetchPokemonDetails(String name) async {
+    final response =
+        await http.get(Uri.parse('https://pokeapi.co/api/v2/pokemon/$name'));
 
     if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      final List results = data['results'];
-      return results.map((e) => Pokemon.fromJson(e)).toList();
+      return PokemonDetail.fromJson(json.decode(response.body));
     } else {
-      throw Exception('Falha ao carregar os Pokémons');
+      throw Exception('Falha ao carregar detalhes do Pokémon.');
     }
   }
 }

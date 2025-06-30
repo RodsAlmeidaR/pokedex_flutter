@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pokemon_pokedex_app/screens/details_screen.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import '../models/pokemon.dart';
 import '../services/pokemon_service.dart';
@@ -12,12 +13,13 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final PokemonService _pokemonService = PokemonService();
-  late Future<List<Pokemon>> _pokemonFuture;
+  late Future<PokemonDetail> _pokemonFuture;
 
   @override
   void initState() {
     super.initState();
-    _pokemonFuture = _pokemonService.fetchPokemons();
+
+    _pokemonFuture = _pokemonService.fetchPokemonDetails('magneton');
   }
 
   @override
@@ -34,6 +36,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: Column(
         children: [
+
           Container(
             padding: const EdgeInsets.all(20),
             color: Colors.grey[200],
@@ -57,53 +60,57 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
+          
+          const SizedBox(height: 20),
 
-          const Padding(
-            padding: EdgeInsets.all(12.0),
-            child: Text(
-              '151 Pokémons',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-          ),
           Expanded(
-            child: FutureBuilder<List<Pokemon>>(
+            child: FutureBuilder<PokemonDetail>(
               future: _pokemonFuture,
               builder: (context, snapshot) {
-                // Enquanto os dados estão carregando, mostra um círculo de progresso
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
-                } 
-                else if (snapshot.hasError) {
-                  return Center(child: Text('Erro ao carregar: ${snapshot.error}'));
-                } 
-                else if (snapshot.hasData) {
-                  final pokemons = snapshot.data!;
-                  return ListView.builder(
-                    itemCount: pokemons.length,
-                    itemBuilder: (context, index) {
-                      final pokemon = pokemons[index];
-                      final pokemonId = pokemon.url.split('/')[6];
-                      final imageUrl = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/$pokemonId.png';
-                      
-                      return ListTile(
-                        leading: Image.network(
-                          imageUrl,
-                          width: 60,
-                          height: 60,
-                          loadingBuilder: (context, child, progress) {
-                            return progress == null ? child : const CircularProgressIndicator();
-                          },
+                } else if (snapshot.hasError) {
+                  return Center(child: Text('Erro: ${snapshot.error}'));
+                } else if (snapshot.hasData) {
+                  final pokemon = snapshot.data!;
+                  // Usamos GestureDetector para tornar o card clicável
+                  return GestureDetector(
+                    onTap: () {
+                      // Ação de clique: navegar para a tela de detalhes
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => DetailsScreen(pokemon: pokemon),
                         ),
-                        title: Text(
-                          pokemon.name[0].toUpperCase() + pokemon.name.substring(1),
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        subtitle: Text('Nº $pokemonId'),
                       );
                     },
+                    child: Card(
+                      elevation: 4,
+                      margin: const EdgeInsets.all(20),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const SizedBox(height: 20),
+                          Image.network(
+                            pokemon.imageUrl,
+                            height: 150,
+                            width: 150,
+                            fit: BoxFit.contain,
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            pokemon.name[0].toUpperCase() + pokemon.name.substring(1),
+                            style: const TextStyle(
+                                fontSize: 22, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 10),
+                          const Text('Clique para ver detalhes'),
+                          const SizedBox(height: 20),
+                        ],
+                      ),
+                    ),
                   );
                 }
-                // Caso não se encaixe em nenhum caso acima
                 return const Center(child: Text('Nenhum Pokémon encontrado.'));
               },
             ),
