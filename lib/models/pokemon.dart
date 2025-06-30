@@ -1,26 +1,23 @@
-import 'dart:convert';
-
 class PokemonDetail {
   final int id;
   final String name;
-  final int height; 
-  final int weight; 
+  final int height;
+  final int weight;
   final String imageUrl;
   final List<String> types;
   final List<String> abilities;
 
   PokemonDetail({
-    required this.id,
-    required this.name,
-    required this.height,
-    required this.weight,
-    required this.imageUrl,
-    required this.types,
     required this.abilities,
-  });
+    required this.height,
+    required this.id,
+    required this.imageUrl,
+    required this.name,
+    required this.types,
+    required this.weight,
+  }); 
 
   factory PokemonDetail.fromJson(Map<String, dynamic> json) {
-
     final typesList = (json['types'] as List)
         .map((typeInfo) => typeInfo['type']['name'] as String)
         .toList();
