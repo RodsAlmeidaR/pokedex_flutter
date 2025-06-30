@@ -1,16 +1,17 @@
-# pokemon_pokedex_app
+Pokédex App em Flutter
+Um simples aplicativo de Pokédex desenvolvido com Flutter para demonstrar o consumo de APIs, a criação de interfaces dinâmicas e o uso de pacotes da comunidade.
 
-A new Flutter project.
+Este aplicativo exibe informações detalhadas de um Pokémon específico (Magneton), buscando os dados em tempo real da PokéAPI. A interface principal apresenta um QR Code que direciona para a Pokédex oficial online e um card expansível que mostra ou esconde os detalhes do Pokémon na mesma tela, com uma animação suave.
 
-## Getting Started
+O projeto foi desenvolvido como um exercício prático, cobrindo conceitos fundamentais do desenvolvimento com Flutter.
 
-This project is a starting point for a Flutter application.
 
-A few resources to get you started if this is your first Flutter project:
+Consumo de API REST: Busca dados de um Pokémon específico via requisições HTTP.
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+UI Dinâmica: Um card que expande e retrai para mostrar/ocultar informações na mesma tela.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Animações: Transição suave ao exibir e esconder os detalhes do Pokémon.
+
+Geração de QR Code: Exibe um QR Code funcional que leva a um site externo.
+
+Modelo de Dados: Utiliza classes Dart para modelar os dados recebidos da API, garantindo um código mais limpo e seguro.
