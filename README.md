@@ -1,4 +1,3 @@
-Pokédex App em Flutter
 Um simples aplicativo de Pokédex desenvolvido com Flutter para demonstrar o consumo de APIs, a criação de interfaces dinâmicas e o uso de pacotes da comunidade.
 
 Este aplicativo exibe informações detalhadas de um Pokémon específico (Magneton), buscando os dados em tempo real da PokéAPI. A interface principal apresenta um QR Code que direciona para a Pokédex oficial online e um card expansível que mostra ou esconde os detalhes do Pokémon na mesma tela, com uma animação suave.
