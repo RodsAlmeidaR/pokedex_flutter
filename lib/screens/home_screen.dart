@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:pokemon_pokedex_app/screens/details_screen.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import '../models/pokemon.dart';
 import '../services/pokemon_service.dart';
@@ -15,12 +14,16 @@ class _HomeScreenState extends State<HomeScreen> {
   final PokemonService _pokemonService = PokemonService();
   late Future<PokemonDetail> _pokemonFuture;
 
+
+  bool _isDetailsVisible = false;
+
   @override
   void initState() {
     super.initState();
-
     _pokemonFuture = _pokemonService.fetchPokemonDetails('magneton');
   }
+
+  String capitalize(String s) => s[0].toUpperCase() + s.substring(1);
 
   @override
   Widget build(BuildContext context) {
@@ -34,88 +37,140 @@ class _HomeScreenState extends State<HomeScreen> {
           fontWeight: FontWeight.bold,
         ),
       ),
-      body: Column(
-        children: [
 
-          Container(
-            padding: const EdgeInsets.all(20),
-            color: Colors.grey[200],
-            child: Center(
+      body: FutureBuilder<PokemonDetail>(
+        future: _pokemonFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasError) {
+            return Center(child: Text('Erro: ${snapshot.error}'));
+          }
+
+          if (snapshot.hasData) {
+            final pokemon = snapshot.data!;
+            return SingleChildScrollView(
               child: Column(
                 children: [
-                  const Text(
-                    'Acesse a Pokédex Online',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 10),
                   Container(
-                    color: Colors.white,
-                    child: QrImageView(
-                      data: 'https://www.pokemon.com/br/pokedex',
-                      version: QrVersions.auto,
-                      size: 150.0,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          
-          const SizedBox(height: 20),
-
-          Expanded(
-            child: FutureBuilder<PokemonDetail>(
-              future: _pokemonFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return Center(child: Text('Erro: ${snapshot.error}'));
-                } else if (snapshot.hasData) {
-                  final pokemon = snapshot.data!;
-                  // Usamos GestureDetector para tornar o card clicável
-                  return GestureDetector(
-                    onTap: () {
-                      // Ação de clique: navegar para a tela de detalhes
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => DetailsScreen(pokemon: pokemon),
-                        ),
-                      );
-                    },
-                    child: Card(
-                      elevation: 4,
-                      margin: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(20),
+                    child: Center(
                       child: Column(
-                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          const SizedBox(height: 20),
-                          Image.network(
-                            pokemon.imageUrl,
-                            height: 150,
-                            width: 150,
-                            fit: BoxFit.contain,
+                          const Text(
+                            'Acesse a Pokédex Online',
+                            style: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 10),
-                          Text(
-                            pokemon.name[0].toUpperCase() + pokemon.name.substring(1),
-                            style: const TextStyle(
-                                fontSize: 22, fontWeight: FontWeight.bold),
+                          Container(
+                            color: Colors.white,
+                            child: QrImageView(
+                              data: 'https://www.pokemon.com/br/pokedex',
+                              version: QrVersions.auto,
+                              size: 150.0,
+                            ),
                           ),
-                          const SizedBox(height: 10),
-                          const Text('Clique para ver detalhes'),
-                          const SizedBox(height: 20),
                         ],
                       ),
                     ),
-                  );
-                }
-                return const Center(child: Text('Nenhum Pokémon encontrado.'));
-              },
-            ),
+                  ),
+
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _isDetailsVisible = !_isDetailsVisible;
+                      });
+                    },
+                    child: SizedBox(
+                      width: 200, 
+                      height: 200, 
+                      child: Card(
+                        elevation: 4,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Image.network(
+                              pokemon.imageUrl,
+                              height: 100,
+                              fit: BoxFit.contain,
+                            ),
+                            const SizedBox(height: 10),
+                            Text(
+                              capitalize(pokemon.name),
+                              style: const TextStyle(
+                                  fontSize: 20, fontWeight: FontWeight.bold),
+                            ),
+                            Icon(_isDetailsVisible
+                                ? Icons.expand_less
+                                : Icons.expand_more),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  AnimatedCrossFade(
+                    duration: const Duration(milliseconds: 300),
+                    firstChild: Container(), 
+                    secondChild: _buildDetailsWidget(pokemon), 
+                    crossFadeState: _isDetailsVisible
+                        ? CrossFadeState.showSecond
+                        : CrossFadeState.showFirst,
+                  ),
+                ],
+              ),
+            );
+          }
+
+          return const Center(child: Text('Nenhum Pokémon encontrado.'));
+        },
+      ),
+    );
+  }
+
+  Widget _buildDetailsWidget(PokemonDetail pokemon) {
+    return Container(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Text('Altura: ${pokemon.height / 10} m',
+                  style: const TextStyle(fontSize: 16)),
+              Text('Peso: ${pokemon.weight / 10} kg',
+                  style: const TextStyle(fontSize: 16)),
+            ],
           ),
+          const SizedBox(height: 16),
+          _buildInfoCard('Tipos', pokemon.types),
+          const SizedBox(height: 10),
+          _buildInfoCard('Habilidades', pokemon.abilities),
         ],
+      ),
+    );
+  }
+
+  Widget _buildInfoCard(String title, List<String> items) {
+    return Card(
+      color: Colors.grey[200],
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            ...items.map((item) => Text('- ${capitalize(item)}')).toList(),
+          ],
+        ),
       ),
     );
   }
